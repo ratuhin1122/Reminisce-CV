@@ -2,11 +2,34 @@
 app.database — SQLite Persistent Memory Storage
 =================================================
 
-Responsibilities:
-    - Database schema creation and migrations
-    - CRUD operations for people, objects, and their embeddings
-    - Recognition event logging
-    - Embedding storage and retrieval (as numpy-compatible BLOBs)
+Public API
+----------
+.. code-block:: python
 
-Implementation added in Stage 2.
+    from app.database import DatabaseManager, Memory, VisualReference, EntityType
+
+    db = DatabaseManager(config.db_path)
+    db.initialize()
+
+    mem_id = db.insert_memory(Memory(
+        entity_type=EntityType.OBJECT,
+        name="Grandmother's Watch",
+        giver_name="Grandmother",
+        occasion="Birthday",
+        year="2015",
+        narrative="A silver pocket watch she gave me on my 18th birthday.",
+    ))
+
+    memory = db.get_memory(mem_id)
+    db.close()
 """
+
+from app.database.models import EntityType, Memory, VisualReference
+from app.database.manager import DatabaseManager
+
+__all__ = [
+    "DatabaseManager",
+    "EntityType",
+    "Memory",
+    "VisualReference",
+]
