@@ -48,22 +48,22 @@ def test_app_project_name() -> None:
 def test_config_paths_are_pathlib() -> None:
     """Config paths should be pathlib.Path objects."""
     from pathlib import Path
-    from app.config import PROJECT_ROOT, DATA_DIR, MODELS_DIR, DB_PATH
+    from app.config import config
 
-    assert isinstance(PROJECT_ROOT, Path)
-    assert isinstance(DATA_DIR, Path)
-    assert isinstance(MODELS_DIR, Path)
-    assert isinstance(DB_PATH, Path)
+    assert isinstance(config.project_root, Path)
+    assert isinstance(config.data_dir, Path)
+    assert isinstance(config.models_dir, Path)
+    assert isinstance(config.db_path, Path)
 
 
 def test_config_paths_are_absolute() -> None:
     """Config paths should be absolute, not relative."""
-    from app.config import PROJECT_ROOT, DATA_DIR, MODELS_DIR, DB_PATH
+    from app.config import config
 
-    assert PROJECT_ROOT.is_absolute()
-    assert DATA_DIR.is_absolute()
-    assert MODELS_DIR.is_absolute()
-    assert DB_PATH.is_absolute()
+    assert config.project_root.is_absolute()
+    assert config.data_dir.is_absolute()
+    assert config.models_dir.is_absolute()
+    assert config.db_path.is_absolute()
 
 
 def test_main_function_exists() -> None:
