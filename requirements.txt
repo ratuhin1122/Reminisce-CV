@@ -1,0 +1,30 @@
+# ──────────────────────────────────────────────
+# ReminisceCV — Python Dependencies
+# ──────────────────────────────────────────────
+# Install: pip install -r requirements.txt
+#
+# Core dependencies are added incrementally as
+# each stage of the project is implemented.
+# ──────────────────────────────────────────────
+
+# --- Stage 1: Foundation (no external deps) ---
+
+# --- Stage 2: CLIP Embeddings (future) ---
+# open-clip-torch
+# Pillow
+
+# --- Stage 3: Face Recognition (future) ---
+# insightface
+# onnxruntime
+
+# --- Stage 5: Webcam / UI (future) ---
+# opencv-python
+
+# --- Stage 6: Text-to-Speech (future) ---
+# pyttsx3
+
+# --- Stage 7: Evaluation (future) ---
+# matplotlib
+
+# --- Testing ---
+pytest>=7.0

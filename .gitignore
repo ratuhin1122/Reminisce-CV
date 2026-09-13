@@ -1,0 +1,65 @@
+# ──────────────────────────────────────────────
+# ReminisceCV .gitignore
+# ──────────────────────────────────────────────
+
+# ── Python ──
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+
+# ── Virtual environments ──
+venv/
+.venv/
+env/
+.env/
+
+# ── IDE / Editor ──
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── AI Models (downloaded at runtime, do not commit) ──
+models/*
+!models/.gitkeep
+
+# ── User data & private memories (NEVER commit) ──
+data/*
+!data/.gitkeep
+!data/README.md
+
+# ── SQLite databases ──
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Logs ──
+*.log
+logs/
+
+# ── pytest / coverage ──
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ── Jupyter (if used for experiments) ──
+.ipynb_checkpoints/
+
+# ── Distribution / packaging ──
+*.tar.gz
+*.zip
