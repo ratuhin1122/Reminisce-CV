@@ -24,11 +24,12 @@ Public API
     db.close()
 """
 
-from app.database.models import EntityType, Memory, VisualReference
+from app.database.models import EntityType, Memory, VisualReference, EmbeddingRecord
 from app.database.manager import DatabaseManager
 
 __all__ = [
     "DatabaseManager",
+    "EmbeddingRecord",
     "EntityType",
     "Memory",
     "VisualReference",

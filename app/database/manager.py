@@ -37,7 +37,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-from app.database.models import EntityType, Memory, VisualReference
+from app.database.models import EntityType, Memory, VisualReference, EmbeddingRecord
 
 
 # ── SQL Statements ────────────────────────────────────────────
@@ -84,6 +84,30 @@ CREATE INDEX IF NOT EXISTS idx_visual_references_memory_id
     ON visual_references(memory_id);
 """
 
+_CREATE_EMBEDDING_RECORDS_TABLE = """
+CREATE TABLE IF NOT EXISTS embedding_records (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    memory_id       INTEGER NOT NULL,
+    model_name      TEXT    NOT NULL,
+    embedding_dim   INTEGER NOT NULL,
+    embedding_path  TEXT    NOT NULL,
+    source_type     TEXT    NOT NULL CHECK(source_type IN ('face', 'clip_object', 'clip_scene')),
+    created_at      TEXT    NOT NULL,
+    FOREIGN KEY (memory_id) REFERENCES memories(id)
+        ON DELETE CASCADE
+);
+"""
+
+_CREATE_INDEX_EMB_MEMORY = """
+CREATE INDEX IF NOT EXISTS idx_embedding_records_memory_id
+    ON embedding_records(memory_id);
+"""
+
+_CREATE_INDEX_EMB_SOURCE = """
+CREATE INDEX IF NOT EXISTS idx_embedding_records_source_type
+    ON embedding_records(source_type);
+"""
+
 
 def _now_iso() -> str:
     """Return the current UTC time as an ISO-8601 string."""
@@ -124,6 +148,19 @@ def _row_to_visual_reference(row: sqlite3.Row) -> VisualReference:
     )
 
 
+def _row_to_embedding_record(row: sqlite3.Row) -> EmbeddingRecord:
+    """Convert a sqlite3.Row to an EmbeddingRecord."""
+    return EmbeddingRecord(
+        id=row["id"],
+        memory_id=row["memory_id"],
+        model_name=row["model_name"],
+        embedding_dim=row["embedding_dim"],
+        embedding_path=row["embedding_path"],
+        source_type=row["source_type"],
+        created_at=_parse_dt(row["created_at"]),
+    )
+
+
 class DatabaseManager:
     """SQLite database manager for the ReminisceCV memory store.
 
@@ -153,9 +190,12 @@ class DatabaseManager:
 
         self._conn.execute(_CREATE_MEMORIES_TABLE)
         self._conn.execute(_CREATE_VISUAL_REFERENCES_TABLE)
+        self._conn.execute(_CREATE_EMBEDDING_RECORDS_TABLE)
         self._conn.execute(_CREATE_INDEX_MEMORY_TYPE)
         self._conn.execute(_CREATE_INDEX_MEMORY_ACTIVE)
         self._conn.execute(_CREATE_INDEX_VISREF_MEMORY)
+        self._conn.execute(_CREATE_INDEX_EMB_MEMORY)
+        self._conn.execute(_CREATE_INDEX_EMB_SOURCE)
         self._conn.commit()
 
     def close(self) -> None:
@@ -384,6 +424,86 @@ class DatabaseManager:
         self.connection.commit()
         return cursor.rowcount > 0
 
+    # ── Embedding Record CRUD ─────────────────────────────────
+
+    def insert_embedding_record(self, record: EmbeddingRecord) -> int:
+        """Insert an embedding metadata record and return its ID."""
+        now = _now_iso()
+        cursor = self.connection.execute(
+            """
+            INSERT INTO embedding_records
+                (memory_id, model_name, embedding_dim,
+                 embedding_path, source_type, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                record.memory_id,
+                record.model_name,
+                record.embedding_dim,
+                record.embedding_path,
+                record.source_type,
+                now,
+            ),
+        )
+        self.connection.commit()
+        return cursor.lastrowid  # type: ignore[return-value]
+
+    def get_embedding_records(
+        self, memory_id: int, source_type: Optional[str] = None
+    ) -> list[EmbeddingRecord]:
+        """Retrieve embedding records for a memory.
+
+        Parameters
+        ----------
+        memory_id : int
+            The memory to look up.
+        source_type : str or None
+            If given, filter by source type (e.g. ``"face"``).
+        """
+        if source_type is not None:
+            rows = self.connection.execute(
+                "SELECT * FROM embedding_records "
+                "WHERE memory_id = ? AND source_type = ? ORDER BY id",
+                (memory_id, source_type),
+            ).fetchall()
+        else:
+            rows = self.connection.execute(
+                "SELECT * FROM embedding_records WHERE memory_id = ? ORDER BY id",
+                (memory_id,),
+            ).fetchall()
+        return [_row_to_embedding_record(r) for r in rows]
+
+    def get_all_embedding_records(
+        self, source_type: Optional[str] = None
+    ) -> list[EmbeddingRecord]:
+        """Retrieve all embedding records, optionally by source type."""
+        if source_type is not None:
+            rows = self.connection.execute(
+                "SELECT * FROM embedding_records WHERE source_type = ? ORDER BY id",
+                (source_type,),
+            ).fetchall()
+        else:
+            rows = self.connection.execute(
+                "SELECT * FROM embedding_records ORDER BY id"
+            ).fetchall()
+        return [_row_to_embedding_record(r) for r in rows]
+
+    def delete_embedding_record(self, record_id: int) -> bool:
+        """Delete an embedding record by ID.  Returns True if deleted."""
+        cursor = self.connection.execute(
+            "DELETE FROM embedding_records WHERE id = ?", (record_id,)
+        )
+        self.connection.commit()
+        return cursor.rowcount > 0
+
+    def delete_embedding_records_for_memory(self, memory_id: int) -> int:
+        """Delete all embedding records for a memory.  Returns count deleted."""
+        cursor = self.connection.execute(
+            "DELETE FROM embedding_records WHERE memory_id = ?", (memory_id,)
+        )
+        self.connection.commit()
+        return cursor.rowcount
+
     # ── Statistics ────────────────────────────────────────────
 
     def count_memories(self, active_only: bool = True) -> int:
@@ -402,5 +522,12 @@ class DatabaseManager:
         """Return the total number of visual references."""
         row = self.connection.execute(
             "SELECT COUNT(*) AS cnt FROM visual_references"
+        ).fetchone()
+        return row["cnt"]
+
+    def count_embedding_records(self) -> int:
+        """Return the total number of embedding records."""
+        row = self.connection.execute(
+            "SELECT COUNT(*) AS cnt FROM embedding_records"
         ).fetchone()
         return row["cnt"]

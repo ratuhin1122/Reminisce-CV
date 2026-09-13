@@ -9,7 +9,8 @@ the database layer and the rest of the application.
 Entity types
 ------------
 - ``Memory``           — a personal memory (object or person)
-- ``VisualReference``  — a registered image + embedding for a memory
+- ``VisualReference``  — a registered image for a memory
+- ``EmbeddingRecord``  — metadata about a computed embedding vector
 """
 
 from __future__ import annotations
@@ -74,11 +75,10 @@ class Memory:
 
 @dataclass
 class VisualReference:
-    """A registered visual reference (image + embedding) for a memory.
+    """A registered visual reference (image) for a memory.
 
     Images are stored on disk, not inside SQLite.  This record holds
-    the *path* to the image file and the *path* to the serialized
-    embedding file (e.g. a .npy file).
+    the *path* to the image file.
 
     Attributes
     ----------
@@ -90,6 +90,8 @@ class VisualReference:
         Filesystem path to the reference image.
     embedding_path : str or None
         Filesystem path to the serialized embedding (e.g. .npy).
+        Kept for backward compatibility; prefer ``EmbeddingRecord``
+        for new code.
     created_at : datetime or None
         Set automatically on INSERT.
     """
@@ -99,3 +101,41 @@ class VisualReference:
     image_path: str = ""
     embedding_path: Optional[str] = None
     created_at: Optional[datetime] = None
+
+
+@dataclass
+class EmbeddingRecord:
+    """Metadata about a computed embedding vector for a memory.
+
+    The actual embedding array is stored on disk as a ``.npy`` file.
+    This record tracks *which* model produced it, its dimensionality,
+    and the file path — enough to load and match at recognition time.
+
+    Attributes
+    ----------
+    id : int or None
+        Auto-assigned by SQLite on INSERT.
+    memory_id : int
+        Foreign key → ``memories.id``.
+    model_name : str
+        Name of the model that produced the embedding
+        (e.g. ``"openai/clip-vit-base-patch32"`` or ``"buffalo_l"``).
+    embedding_dim : int
+        Dimensionality of the embedding vector (e.g. 512).
+    embedding_path : str
+        Filesystem path to the serialized ``.npy`` file.
+    source_type : str
+        What kind of input produced this embedding:
+        ``"face"``, ``"clip_object"``, or ``"clip_scene"``.
+    created_at : datetime or None
+        Set automatically on INSERT.
+    """
+
+    id: Optional[int] = None
+    memory_id: int = 0
+    model_name: str = ""
+    embedding_dim: int = 512
+    embedding_path: str = ""
+    source_type: str = "clip_object"
+    created_at: Optional[datetime] = None
+
