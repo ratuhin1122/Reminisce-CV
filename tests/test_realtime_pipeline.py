@@ -381,6 +381,51 @@ class TestPipelineModularityAndMatching:
         assert result.top_object.name == "Vintage Watch"
         assert result.top_object.similarity >= 0.9
 
+    def test_stable_recognition_populates_stable_memory(
+        self,
+        mock_pipeline: RealTimeRecognitionPipeline,
+        mock_vision_model: MockVisionEmbeddingModel,
+    ) -> None:
+        known_emb = np.zeros(512, dtype=np.float32)
+        known_emb[5] = 1.0
+        mock_vision_model.encode_image = MagicMock(return_value=known_emb)
+
+        mock_pipeline.object_service.set_in_memory_gallery([known_emb], [202])
+        mock_memory = Memory(
+            id=202,
+            name="Vintage Watch",
+            giver_name="Grandfather",
+            occasion="Graduation",
+            year="1975",
+            narrative="Mechanical heirloom.",
+        )
+        mock_pipeline.object_service._mem_service.get_memory = MagicMock(
+            return_value=mock_memory
+        )
+        mock_pipeline.memory_retrieval._mem_service.get_memory = MagicMock(
+            return_value=mock_memory
+        )
+
+        # Set tracker to short duration for test
+        mock_pipeline.tracker.object_tracker.stability_duration = 0.1
+        mock_pipeline.tracker.object_tracker.min_consecutive_frames = 2
+
+        # Frame 1: initial detection (candidate, not stable yet)
+        res1 = mock_pipeline.process_frame(frame=np.zeros((100, 100, 3), dtype=np.uint8))
+        assert res1.is_stable is False
+        assert res1.stable_memory is None
+
+        # Frame 2: after stability duration
+        time.sleep(0.12)
+        res2 = mock_pipeline.process_frame(frame=np.zeros((100, 100, 3), dtype=np.uint8))
+        assert res2.is_stable is True
+        assert res2.stable_memory is not None
+        assert res2.stable_memory.found is True
+        assert res2.stable_memory.title == "Vintage Watch"
+        assert res2.stable_memory.giver == "Grandfather"
+        assert res2.stable_memory.occasion == "Graduation"
+        assert res2.stable_memory.year == "1975"
+        assert res2.stable_memory.narrative == "Mechanical heirloom."
 
 
 # ── Streaming Tests ───────────────────────────────────────────────────────────
@@ -404,3 +449,4 @@ class TestPipelineStreaming:
 
         assert frames_received == 3
         assert mock_pipeline._is_running is False
+

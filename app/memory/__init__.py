@@ -30,10 +30,15 @@ from app.memory.registration import (
     RegisteredReference,
 )
 from app.memory.repository import MemoryRepository
+from app.memory.retrieval import (
+    MemoryRetrievalService,
+    StructuredMemoryResponse,
+)
 from app.memory.service import MemoryService, MemoryWithReferences
 
 __all__ = [
     "MemoryRepository",
+    "MemoryRetrievalService",
     "MemoryService",
     "MemoryWithReferences",
     "ObjectRegistrationService",
@@ -42,4 +47,6 @@ __all__ = [
     "RegisteredObject",
     "RegisteredPerson",
     "RegisteredReference",
+    "StructuredMemoryResponse",
 ]
+

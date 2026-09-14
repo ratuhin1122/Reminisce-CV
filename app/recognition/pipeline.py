@@ -29,6 +29,10 @@ import cv2
 import numpy as np
 
 from app.config import config
+from app.memory.retrieval import (
+    MemoryRetrievalService,
+    StructuredMemoryResponse,
+)
 from app.recognition.person_service import (
     PersonRecognitionResult,
     PersonRecognitionService,
@@ -112,6 +116,7 @@ class FrameRecognitionResult:
     timing: PipelineTiming = field(default_factory=PipelineTiming)
     has_matches: bool = False
     tracker_state: Optional[DualRecognitionState] = None
+    stable_memory: Optional[StructuredMemoryResponse] = None
 
     @property
     def is_stable(self) -> bool:
@@ -168,6 +173,7 @@ class RealTimeRecognitionPipeline:
         person_service: Optional[PersonRecognitionService] = None,
         region_extractor: Optional[CandidateRegionExtractor] = None,
         tracker: Optional[DualRecognitionTracker] = None,
+        memory_retrieval: Optional[MemoryRetrievalService] = None,
         enable_objects: bool = True,
         enable_faces: bool = True,
         auto_warmup: bool = True,
@@ -183,6 +189,9 @@ class RealTimeRecognitionPipeline:
             region_extractor or CandidateRegionExtractor()
         )
         self.tracker: DualRecognitionTracker = tracker or DualRecognitionTracker()
+        self.memory_retrieval: MemoryRetrievalService = (
+            memory_retrieval or MemoryRetrievalService()
+        )
 
         self.enable_objects: bool = enable_objects
         self.enable_faces: bool = enable_faces
@@ -386,6 +395,18 @@ class RealTimeRecognitionPipeline:
             timestamp=now,
         )
 
+        # 6. Stored Personal Memory Retrieval for Stable Entities
+        stable_memory: Optional[StructuredMemoryResponse] = None
+        if tracker_state and tracker_state.has_stable_match:
+            stable_cand = None
+            if tracker_state.object_state.is_stable and tracker_state.object_state.candidate:
+                stable_cand = tracker_state.object_state.candidate
+            elif tracker_state.person_state.is_stable and tracker_state.person_state.candidate:
+                stable_cand = tracker_state.person_state.candidate
+
+            if stable_cand and stable_cand.entity_id:
+                stable_memory = self.memory_retrieval.retrieve_memory(stable_cand.entity_id)
+
         has_matches = any(p.matched for p in detected_people) or any(
             o.matched for o in recognized_objects
         )
@@ -400,6 +421,7 @@ class RealTimeRecognitionPipeline:
             timing=timing,
             has_matches=has_matches,
             tracker_state=tracker_state,
+            stable_memory=stable_memory,
         )
 
     def stream(self) -> Generator[FrameRecognitionResult, None, None]:
