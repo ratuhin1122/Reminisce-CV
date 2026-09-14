@@ -7,6 +7,17 @@ Responsibilities:
     - Background thread with speech queue
     - Never blocks the webcam processing loop
     - Graceful startup and shutdown
-
-Implementation added in Stage 6.
 """
+
+from app.speech.service import (
+    MockSpeechEngine,
+    SpeechService,
+    SpeechTask,
+)
+
+__all__ = [
+    "MockSpeechEngine",
+    "SpeechService",
+    "SpeechTask",
+]
+
