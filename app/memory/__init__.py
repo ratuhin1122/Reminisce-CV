@@ -13,31 +13,17 @@ Public API
         ObjectRegistrationService,
         RegisteredObject,
         RegisteredReference,
+        PersonRegistrationService,
+        RegisteredPerson,
+        RegisteredFaceReference,
     )
-
-    # High-level object registration with CLIP embeddings & storage
-    reg_service = ObjectRegistrationService(db_path=":memory:")
-    reg_service.start()
-    obj = reg_service.register_object(
-        name="Pocket Watch",
-        giver="Grandfather",
-        reference_images=["path/to/watch.jpg"],
-    )
-    reg_service.stop()
-
-Architecture
-~~~~~~~~~~~~
-::
-
-    ObjectRegistrationService  →  image validation, CLIP embeddings, disk I/O
-        ↓
-    MemoryService              →  business logic, validation
-        ↓
-    MemoryRepository           →  typed data access (no SQL)
-        ↓
-    DatabaseManager            →  raw SQL, connection handling
 """
 
+from app.memory.person_registration import (
+    PersonRegistrationService,
+    RegisteredFaceReference,
+    RegisteredPerson,
+)
 from app.memory.registration import (
     ObjectRegistrationService,
     RegisteredObject,
@@ -51,6 +37,9 @@ __all__ = [
     "MemoryService",
     "MemoryWithReferences",
     "ObjectRegistrationService",
+    "PersonRegistrationService",
+    "RegisteredFaceReference",
     "RegisteredObject",
+    "RegisteredPerson",
     "RegisteredReference",
 ]

@@ -5,34 +5,12 @@ app.vision — Vision Embedding Abstraction & Models
 This package encapsulates vision model loading, image feature extraction,
 and embedding similarity comparisons for ReminisceCV.
 
-All concrete vision encoders implement the ``VisionEmbeddingModel`` abstract
-interface, ensuring the rest of the application is fully decoupled from
-deep learning frameworks.
-
-Public API
-----------
-.. code-block:: python
-
-    from app.vision import (
-        VisionEmbeddingModel,
-        CLIPVisionModel,
-        CLIPEmbeddingEngine,
-        MockVisionEmbeddingModel,
-        ImageInput,
-        cosine_similarity,
-        batch_cosine_similarity,
-    )
-
-    # Instantiate CLIP model
-    model = CLIPVisionModel()
-    model.load_model()
-
-    # Extract normalized embeddings (NumPy ndarray)
-    emb_a = model.encode_image("path/to/watch.jpg")
-    emb_b = model.encode_image("path/to/gift.jpg")
-
-    # Compute cosine similarity: (A · B) / (||A|| ||B||)
-    score = model.similarity(emb_a, emb_b)
+Modules:
+--------
+- ``base``: VisionEmbeddingModel ABC and similarity functions.
+- ``clip``: Pretrained CLIP vision embedding engine.
+- ``face``: Local face detection and face embedding pipeline.
+- ``mock``: Test doubles for offline verification.
 """
 
 from app.vision.base import (
@@ -42,12 +20,24 @@ from app.vision.base import (
     cosine_similarity,
 )
 from app.vision.clip import CLIPEmbeddingEngine, CLIPVisionModel
+from app.vision.face import (
+    DetectedFace,
+    FaceBoundingBox,
+    FaceEmbeddingModel,
+    LocalFaceEngine,
+    MockFaceEmbeddingModel,
+)
 from app.vision.mock import MockVisionEmbeddingModel
 
 __all__ = [
     "CLIPEmbeddingEngine",
     "CLIPVisionModel",
+    "DetectedFace",
+    "FaceBoundingBox",
+    "FaceEmbeddingModel",
     "ImageInput",
+    "LocalFaceEngine",
+    "MockFaceEmbeddingModel",
     "MockVisionEmbeddingModel",
     "VisionEmbeddingModel",
     "batch_cosine_similarity",
