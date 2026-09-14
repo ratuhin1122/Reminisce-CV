@@ -67,3 +67,7 @@ htmlcov/
 # ── Distribution / packaging ──
 *.tar.gz
 *.zip
+
+# ── Evaluation results (generated at runtime) ──
+evaluation/results/*
+!evaluation/results/.gitkeep

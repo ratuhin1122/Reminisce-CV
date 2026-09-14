@@ -303,7 +303,13 @@ class ObjectRecognitionService:
             )
 
         # 8. Fetch memory details from database
-        memory = self._mem_service.get_memory(best_candidate_id)
+        memory = None
+        if self._mem_service is not None:
+            try:
+                memory = self._mem_service.get_memory(best_candidate_id)
+            except Exception as e:
+                logger.warning("Failed to retrieve memory for candidate %s: %s", best_candidate_id, e)
+                memory = None
         name = memory.name if memory else None
 
         return RecognitionResult(
@@ -366,7 +372,13 @@ class ObjectRecognitionService:
             cand_id = self._gallery_entity_ids[idx]
             ref_path = self._gallery_ref_paths[idx]
             matched = score >= eff_threshold
-            memory = self._mem_service.get_memory(cand_id) if matched else None
+            memory = None
+            if matched and self._mem_service is not None:
+                try:
+                    memory = self._mem_service.get_memory(cand_id)
+                except Exception as e:
+                    logger.warning("Failed to retrieve memory for candidate %s: %s", cand_id, e)
+                    memory = None
             name = memory.name if memory else None
 
             results.append(

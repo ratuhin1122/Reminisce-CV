@@ -56,6 +56,7 @@ def _verify_imports() -> bool:
         "app.memory",
         "app.speech",
         "app.ui",
+        "app.evaluation",
     ]
     all_ok = True
     for pkg in sub_packages:

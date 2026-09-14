@@ -12,6 +12,7 @@ responsibility:
     app.memory        — Memory registration and retrieval logic
     app.speech        — Non-blocking text-to-speech output
     app.ui            — OpenCV-based on-screen display
+    app.evaluation    — AI recognition evaluation framework
 """
 
 __version__ = "0.1.0"
