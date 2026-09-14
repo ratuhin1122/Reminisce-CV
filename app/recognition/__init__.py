@@ -31,10 +31,20 @@ from app.recognition.service import (
     ObjectRecognitionService,
     RecognitionResult,
 )
+from app.recognition.tracker import (
+    DualRecognitionState,
+    DualRecognitionTracker,
+    RecognitionState,
+    RecognitionTracker,
+    TemporalStatus,
+    TrackedEntity,
+)
 
 __all__ = [
     "CandidateRegion",
     "CandidateRegionExtractor",
+    "DualRecognitionState",
+    "DualRecognitionTracker",
     "FrameRecognitionResult",
     "ObjectRecognitionService",
     "PersonRecognitionResult",
@@ -42,5 +52,10 @@ __all__ = [
     "PipelineTiming",
     "RealTimeRecognitionPipeline",
     "RecognitionResult",
+    "RecognitionState",
+    "RecognitionTracker",
+    "TemporalStatus",
+    "TrackedEntity",
 ]
+
 

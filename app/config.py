@@ -120,7 +120,7 @@ class Config:
         default_factory=lambda: _env_int("RCV_DEBOUNCE_FRAMES", 3)
     )
     recognition_stability_sec: float = field(
-        default_factory=lambda: _env_float("RCV_STABILITY_SEC", 1.0)
+        default_factory=lambda: _env_float("RCV_STABILITY_SEC", 1.5)
     )
     speech_cooldown_sec: float = field(
         default_factory=lambda: _env_float("RCV_SPEECH_COOLDOWN", 30.0)

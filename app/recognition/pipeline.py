@@ -41,6 +41,11 @@ from app.recognition.service import (
     ObjectRecognitionService,
     RecognitionResult,
 )
+from app.recognition.tracker import (
+    DualRecognitionState,
+    DualRecognitionTracker,
+    TrackedEntity,
+)
 from app.vision.camera import CameraFrame, CameraService
 
 logger = logging.getLogger(__name__)
@@ -106,6 +111,17 @@ class FrameRecognitionResult:
     candidate_regions: List[CandidateRegion] = field(default_factory=list)
     timing: PipelineTiming = field(default_factory=PipelineTiming)
     has_matches: bool = False
+    tracker_state: Optional[DualRecognitionState] = None
+
+    @property
+    def is_stable(self) -> bool:
+        """Whether any recognized entity has achieved temporal stability."""
+        return self.tracker_state.has_stable_match if self.tracker_state else False
+
+    @property
+    def became_stable(self) -> bool:
+        """Whether any recognized entity newly became stable on this frame."""
+        return self.tracker_state.any_became_stable if self.tracker_state else False
 
     @property
     def top_person(self) -> Optional[PersonRecognitionResult]:
@@ -151,6 +167,7 @@ class RealTimeRecognitionPipeline:
         object_service: Optional[ObjectRecognitionService] = None,
         person_service: Optional[PersonRecognitionService] = None,
         region_extractor: Optional[CandidateRegionExtractor] = None,
+        tracker: Optional[DualRecognitionTracker] = None,
         enable_objects: bool = True,
         enable_faces: bool = True,
         auto_warmup: bool = True,
@@ -165,6 +182,7 @@ class RealTimeRecognitionPipeline:
         self.region_extractor: CandidateRegionExtractor = (
             region_extractor or CandidateRegionExtractor()
         )
+        self.tracker: DualRecognitionTracker = tracker or DualRecognitionTracker()
 
         self.enable_objects: bool = enable_objects
         self.enable_faces: bool = enable_faces
@@ -359,6 +377,15 @@ class RealTimeRecognitionPipeline:
             fps=round(self._fps_smoothed, 1),
         )
 
+        # 5. Temporal Stability Tracking
+        top_p = next((p for p in detected_people if p.matched), None)
+        top_o = next((o for o in recognized_objects if o.matched), None)
+        tracker_state = self.tracker.update(
+            object_detection=top_o,
+            person_detection=top_p,
+            timestamp=now,
+        )
+
         has_matches = any(p.matched for p in detected_people) or any(
             o.matched for o in recognized_objects
         )
@@ -372,6 +399,7 @@ class RealTimeRecognitionPipeline:
             candidate_regions=candidate_regions,
             timing=timing,
             has_matches=has_matches,
+            tracker_state=tracker_state,
         )
 
     def stream(self) -> Generator[FrameRecognitionResult, None, None]:
