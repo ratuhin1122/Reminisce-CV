@@ -9,6 +9,10 @@ Responsibilities:
     - Graceful startup and shutdown
 """
 
+from app.speech.cooldown import (
+    SpeechCooldownController,
+    SpeechEvent,
+)
 from app.speech.service import (
     MockSpeechEngine,
     SpeechService,
@@ -17,7 +21,10 @@ from app.speech.service import (
 
 __all__ = [
     "MockSpeechEngine",
+    "SpeechCooldownController",
+    "SpeechEvent",
     "SpeechService",
     "SpeechTask",
 ]
+
 
