@@ -2,20 +2,32 @@
 ReminisceCV — Application Entry Point
 =======================================
 
-Minimal startup that verifies the project structure is intact and
-all packages are importable.  Feature logic is added in later stages.
+Starts the ReminisceCV real-time OpenCV assistive memory system or performs
+system diagnostic checks.
 
 Usage
 -----
-    python -m app.main
+Launch interactive OpenCV memory assistant:
+    python main.py
     # or
-    python main.py          (via the wrapper at project root)
+    python -m app.main
+
+Launch with mock feed (for environments without webcams):
+    python main.py --mock
+
+Run system diagnostic checks only:
+    python main.py --check
 """
 
+import argparse
+import logging
 import sys
+from typing import Optional
 
 from app import __project__, __version__
 from app.config import config
+
+logger = logging.getLogger("reminiscecv")
 
 
 def _print_banner() -> None:
@@ -56,10 +68,9 @@ def _verify_imports() -> bool:
     return all_ok
 
 
-def main() -> None:
-    """Application entry point."""
+def run_checks() -> bool:
+    """Perform system sanity checks and print diagnostics."""
     _print_banner()
-
     print()
     print("Checking project structure...")
     _check_directories()
@@ -71,15 +82,89 @@ def main() -> None:
     if not all_ok:
         print()
         print("Some checks failed. Fix import errors before continuing.")
-        sys.exit(1)
+        return False
 
     print()
     print("Configuration:")
     print(config.summary())
 
     print()
-    print("All checks passed. ReminisceCV is ready for development.")
+    print("All checks passed. ReminisceCV is ready.")
     print()
+    return True
+
+
+def main(argv: Optional[list[str]] = None) -> None:
+    """Application entry point."""
+    parser = argparse.ArgumentParser(
+        description="ReminisceCV: Real-Time OpenCV Memory Assistant",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Run system diagnostics and verify project imports without starting video feed",
+    )
+    parser.add_argument(
+        "--mock",
+        action="store_true",
+        help="Use synthetic video capture and mock AI models (useful when no webcam is connected)",
+    )
+    parser.add_argument(
+        "--headless",
+        action="store_true",
+        help="Run without opening an OpenCV GUI window",
+    )
+    parser.add_argument(
+        "--mute",
+        action="store_true",
+        help="Start with audio narration muted",
+    )
+    parser.add_argument(
+        "--camera",
+        type=int,
+        default=0,
+        help="Webcam device index",
+    )
+    parser.add_argument(
+        "--max-frames",
+        type=int,
+        default=0,
+        help="Stop after processing N frames (0 = run continuously)",
+    )
+
+    args = parser.parse_args(argv)
+
+    if args.check:
+        ok = run_checks()
+        if not ok:
+            sys.exit(1)
+        return
+
+    _print_banner()
+    print()
+    print("Starting ReminisceCV Assistant...")
+    print("Press 'Q' to quit, 'R' to reset recognition, 'M' to mute/unmute.")
+    print()
+
+    from scripts.run_assistant import build_app
+
+    app = build_app(
+        camera_index=args.camera,
+        use_mock=args.mock,
+        start_muted=args.mute,
+    )
+
+    try:
+        app.run(
+            max_frames=args.max_frames if args.max_frames > 0 else None,
+            headless=args.headless,
+        )
+    except KeyboardInterrupt:
+        pass
+    except Exception as exc:
+        logger.error("Error during execution: %s", exc)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
