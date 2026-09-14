@@ -1,12 +1,28 @@
 """
-app.recognition — Real-Time Recognition Engine
-================================================
+app.recognition — Recognition Engine
+====================================
 
-Responsibilities:
-    - Orchestrate face + object recognition per frame
-    - Temporal stability / debouncing (require N consecutive matches)
-    - Per-entity speech cooldown tracking
-    - Coordinate between vision, database, and speech modules
+Public API
+----------
+.. code-block:: python
 
-Implementation added in Stage 5.
+    from app.recognition import ObjectRecognitionService, RecognitionResult
+
+    service = ObjectRecognitionService()
+    result = service.recognize("query_crop.jpg")
+
+    if result.matched:
+        print(f"Recognized: {result.name} (Similarity: {result.similarity:.2f})")
+    else:
+        print(f"No match found. Top score: {result.similarity:.2f} < {result.threshold:.2f}")
 """
+
+from app.recognition.service import (
+    ObjectRecognitionService,
+    RecognitionResult,
+)
+
+__all__ = [
+    "ObjectRecognitionService",
+    "RecognitionResult",
+]
