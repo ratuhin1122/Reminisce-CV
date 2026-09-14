@@ -19,6 +19,14 @@ from app.vision.base import (
     batch_cosine_similarity,
     cosine_similarity,
 )
+from app.vision.camera import (
+    CameraError,
+    CameraFrame,
+    CameraNotFoundError,
+    CameraService,
+    FrameCaptureError,
+    WebcamService,
+)
 from app.vision.clip import CLIPEmbeddingEngine, CLIPVisionModel
 from app.vision.face import (
     DetectedFace,
@@ -32,14 +40,21 @@ from app.vision.mock import MockVisionEmbeddingModel
 __all__ = [
     "CLIPEmbeddingEngine",
     "CLIPVisionModel",
+    "CameraError",
+    "CameraFrame",
+    "CameraNotFoundError",
+    "CameraService",
     "DetectedFace",
     "FaceBoundingBox",
     "FaceEmbeddingModel",
+    "FrameCaptureError",
     "ImageInput",
     "LocalFaceEngine",
     "MockFaceEmbeddingModel",
     "MockVisionEmbeddingModel",
     "VisionEmbeddingModel",
+    "WebcamService",
     "batch_cosine_similarity",
     "cosine_similarity",
 ]
+
