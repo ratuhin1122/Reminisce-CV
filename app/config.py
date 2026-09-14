@@ -134,10 +134,22 @@ class Config:
         default_factory=lambda: _env_float("RCV_TTS_VOLUME", 0.9)
     )
 
+    @property
+    def references_dir(self) -> Path:
+        """Directory for storing registered visual reference images."""
+        return self.data_dir / "references"
+
+    @property
+    def embeddings_dir(self) -> Path:
+        """Directory for storing serialized .npy embedding vectors."""
+        return self.data_dir / "embeddings"
+
     def ensure_directories(self) -> None:
         """Create required directories if they do not exist."""
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.models_dir.mkdir(parents=True, exist_ok=True)
+        self.references_dir.mkdir(parents=True, exist_ok=True)
+        self.embeddings_dir.mkdir(parents=True, exist_ok=True)
 
     def summary(self) -> str:
         """Return a human-readable summary of the current configuration."""

@@ -6,24 +6,43 @@ Public API
 ----------
 .. code-block:: python
 
-    from app.memory import MemoryService
+    from app.memory import (
+        MemoryService,
+        MemoryRepository,
+        MemoryWithReferences,
+        ObjectRegistrationService,
+        RegisteredObject,
+        RegisteredReference,
+    )
 
-    service = MemoryService(db_path=config.db_path)
-    service.start()
-    mem_id = service.register_object(name="Watch", giver_name="Grandmother")
-    service.stop()
+    # High-level object registration with CLIP embeddings & storage
+    reg_service = ObjectRegistrationService(db_path=":memory:")
+    reg_service.start()
+    obj = reg_service.register_object(
+        name="Pocket Watch",
+        giver="Grandfather",
+        reference_images=["path/to/watch.jpg"],
+    )
+    reg_service.stop()
 
 Architecture
 ~~~~~~~~~~~~
 ::
 
-    MemoryService      →  business logic, validation
+    ObjectRegistrationService  →  image validation, CLIP embeddings, disk I/O
         ↓
-    MemoryRepository   →  typed data access (no SQL)
+    MemoryService              →  business logic, validation
         ↓
-    DatabaseManager    →  raw SQL, connection handling
+    MemoryRepository           →  typed data access (no SQL)
+        ↓
+    DatabaseManager            →  raw SQL, connection handling
 """
 
+from app.memory.registration import (
+    ObjectRegistrationService,
+    RegisteredObject,
+    RegisteredReference,
+)
 from app.memory.repository import MemoryRepository
 from app.memory.service import MemoryService, MemoryWithReferences
 
@@ -31,4 +50,7 @@ __all__ = [
     "MemoryRepository",
     "MemoryService",
     "MemoryWithReferences",
+    "ObjectRegistrationService",
+    "RegisteredObject",
+    "RegisteredReference",
 ]

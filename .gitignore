@@ -41,6 +41,10 @@ models/*
 data/*
 !data/.gitkeep
 !data/README.md
+data/references/
+data/embeddings/
+*.npy
+*.npz
 
 # ── SQLite databases ──
 *.db
