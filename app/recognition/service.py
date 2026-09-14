@@ -113,7 +113,7 @@ class ObjectRecognitionService:
             self._reg_service = registration_service
             self._mem_service = registration_service.memory_service
         else:
-            self._mem_service = memory_service or MemoryService()
+            self._mem_service = memory_service or MemoryService(db_path=config.db_path)
             self._reg_service = ObjectRegistrationService(
                 memory_service=self._mem_service,
                 vision_model=self._vision_model,
@@ -151,7 +151,11 @@ class ObjectRecognitionService:
 
     def refresh_gallery(self) -> None:
         """Load all registered object embeddings from disk into an in-memory matrix."""
-        objects = self._reg_service.get_all_registered_objects()
+        try:
+            objects = self._reg_service.get_all_registered_objects()
+        except RuntimeError:
+            self._mem_service.start()
+            objects = self._reg_service.get_all_registered_objects()
         entity_ids: List[int] = []
         ref_paths: List[str] = []
         embs: List[np.ndarray] = []

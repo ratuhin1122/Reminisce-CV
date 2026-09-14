@@ -120,7 +120,7 @@ class PersonRecognitionService:
             self._reg_service = registration_service
             self._mem_service = registration_service.memory_service
         else:
-            self._mem_service = memory_service or MemoryService()
+            self._mem_service = memory_service or MemoryService(db_path=config.db_path)
             self._reg_service = PersonRegistrationService(
                 memory_service=self._mem_service,
                 face_engine=self._face_engine,
@@ -152,7 +152,11 @@ class PersonRecognitionService:
 
     def refresh_gallery(self) -> None:
         """Load all registered face embeddings into an in-memory matrix."""
-        people = self._reg_service.get_all_registered_people()
+        try:
+            people = self._reg_service.get_all_registered_people()
+        except RuntimeError:
+            self._mem_service.start()
+            people = self._reg_service.get_all_registered_people()
         entity_ids: List[int] = []
         ref_paths: List[str] = []
         embs: List[np.ndarray] = []
