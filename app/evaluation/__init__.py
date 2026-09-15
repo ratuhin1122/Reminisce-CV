@@ -8,6 +8,7 @@ recognition pipeline quality and computational performance:
 - ``RecognitionEvaluator``: Orchestrates multi-threshold evaluation sweeps.
 - ``SyntheticDataGenerator``: Generates reproducible test datasets without private content.
 - ``export_csv`` / ``export_json``: Machine-readable result serialization.
+- ``RobustnessExperimentRunner``: Controlled robustness experiments across conditions.
 
 Designed for AI Lab reports with metrics including accuracy, precision,
 recall, F1-score, and inference latency benchmarks.
@@ -24,7 +25,21 @@ from app.evaluation.engine import (
 from app.evaluation.export import (
     export_csv,
     export_json,
+    export_robustness_summary_text,
     export_summary_text,
+)
+from app.evaluation.robustness import (
+    RobustnessCondition,
+    RobustnessExperimentResult,
+    RobustnessExperimentRunner,
+    RobustnessLevel,
+    RobustnessReport,
+    apply_background_change,
+    apply_lighting_change,
+    apply_occlusion,
+    apply_rotation,
+    apply_scale,
+    get_default_levels,
 )
 from app.evaluation.test_data import (
     EvaluationDataset,
@@ -40,9 +55,22 @@ __all__ = [
     "EvaluationSample",
     "PerformanceMetrics",
     "RecognitionEvaluator",
+    "RobustnessCondition",
+    "RobustnessExperimentResult",
+    "RobustnessExperimentRunner",
+    "RobustnessLevel",
+    "RobustnessReport",
     "SyntheticDataGenerator",
     "ThresholdResult",
+    "apply_background_change",
+    "apply_lighting_change",
+    "apply_occlusion",
+    "apply_rotation",
+    "apply_scale",
     "export_csv",
     "export_json",
+    "export_robustness_summary_text",
     "export_summary_text",
+    "get_default_levels",
 ]
+

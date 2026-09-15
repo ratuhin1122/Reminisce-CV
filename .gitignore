@@ -71,3 +71,10 @@ htmlcov/
 # ── Evaluation results (generated at runtime) ──
 evaluation/results/*
 !evaluation/results/.gitkeep
+evaluation/results/robustness/*
+!evaluation/results/robustness/.gitkeep
+
+# ── Evaluation test images (private data, NEVER commit) ──
+data/evaluation/**/*
+!data/evaluation/README.md
+!data/evaluation/**/.gitkeep

@@ -152,3 +152,95 @@ queries = [
 ```
 
 Do **not** commit personal photos to the repository.
+
+## Robustness Evaluation Experiments
+
+The robustness evaluation framework measures how recognition performance degrades
+under challenging real-world conditions. It complements the standard evaluation
+by isolating specific visual challenges.
+
+### Conditions Tested
+
+| Condition           | Levels                              | What It Measures                        |
+|---------------------|-------------------------------------|-----------------------------------------|
+| **Lighting**        | normal, dim, bright, overexposed    | Sensitivity to brightness/contrast changes |
+| **Angle**           | front, 15°, 30°, 45° rotation      | Viewpoint invariance                    |
+| **Distance**        | close, medium, far                  | Scale invariance (object size in frame) |
+| **Occlusion**       | none, 25%, 50% masked               | Tolerance to partial visibility         |
+| **Background**      | original, white, dark, noisy        | Background independence                 |
+| **Reference Count** | 1, 2, 3, 5 reference images         | Gallery size impact on accuracy         |
+
+### How to Run
+
+Run all robustness experiments:
+
+```bash
+python scripts/run_robustness.py
+```
+
+Run specific conditions:
+
+```bash
+python scripts/run_robustness.py --conditions lighting,angle,distance
+```
+
+Custom thresholds and dataset size:
+
+```bash
+python scripts/run_robustness.py --thresholds 0.50,0.60,0.70,0.80 --entities 8
+```
+
+Full options:
+
+```bash
+python scripts/run_robustness.py --help
+```
+
+### Output Files
+
+Robustness results are saved to `evaluation/results/robustness/`:
+
+- **`robustness_YYYYMMDD_HHMMSS.json`**: Full nested report with all conditions and levels.
+- **`robustness_summary_YYYYMMDD_HHMMSS.csv`**: One row per condition × level with best F1/accuracy.
+- **Per-condition CSVs**: `evaluation/results/robustness/<condition>/<level>_*.csv`.
+- **`robustness_latest.json`** and **`robustness_summary_latest.csv`**: Most recent run.
+
+### Interpreting Robustness Results
+
+- **Small F1 drop**: The model is robust to that condition (e.g., lighting changes barely affect recognition).
+- **Large F1 drop**: The model is sensitive to that condition (e.g., 50% occlusion significantly hurts accuracy).
+- Compare the **baseline level** (no perturbation) against each **degraded level** to quantify the impact.
+- The **degradation summary** at the bottom of the output shows the worst-case F1 drop per condition.
+
+### Dataset Organization Convention
+
+If you have your own test images for robustness evaluation, place them in:
+
+```
+data/evaluation/
+├── lighting/
+│   ├── normal/
+│   ├── dim/
+│   ├── bright/
+│   └── overexposed/
+├── angle/
+│   ├── front/
+│   ├── rotated_15/
+│   ├── rotated_30/
+│   └── rotated_45/
+├── distance/
+│   ├── close/
+│   ├── medium/
+│   └── far/
+├── occlusion/
+│   ├── none/
+│   ├── partial_25/
+│   └── partial_50/
+└── background/
+    ├── original/
+    ├── white/
+    ├── dark/
+    └── noisy/
+```
+
+All image files in `data/evaluation/` are gitignored. See `data/evaluation/README.md` for details.

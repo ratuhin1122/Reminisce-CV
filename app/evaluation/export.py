@@ -215,3 +215,61 @@ def export_summary_text(report: EvaluationReport) -> str:
 
     return "\n".join(lines)
 
+
+def export_robustness_summary_text(report) -> str:
+    """Generate a formatted plaintext summary of robustness evaluation results.
+
+    Produces a comparative table showing how F1-score and accuracy degrade
+    across different robustness conditions and severity levels.
+
+    Parameters
+    ----------
+    report : RobustnessReport
+        Completed robustness evaluation report (from ``app.evaluation.robustness``).
+
+    Returns
+    -------
+    str
+        Multi-line formatted summary string.
+    """
+    lines = []
+
+    lines.append("=" * 94)
+    lines.append("  ReminisceCV Robustness Evaluation Summary")
+    lines.append(f"  Model: {report.model_name}")
+    lines.append(f"  Timestamp: {report.timestamp}")
+    lines.append("=" * 94)
+
+    # Collect unique conditions in order
+    conditions_seen: list[str] = []
+    for exp in report.experiments:
+        if exp.condition not in conditions_seen:
+            conditions_seen.append(exp.condition)
+
+    for condition in conditions_seen:
+        results = report.get_condition_results(condition)
+        if not results:
+            continue
+
+        lines.append("")
+        lines.append(f"  Condition: {condition.upper()}")
+        sep = "  +------------------+----------+----------+----------+----------+"
+        lines.append(sep)
+        lines.append(
+            "  | Level            | Best F1  | Best Acc | Param    | Degrad.  |"
+        )
+        lines.append(sep)
+
+        for exp in results:
+            lines.append(
+                f"  | {exp.level.name:<16s} | {exp.best_f1():>8.4f} |"
+                f" {exp.best_accuracy():>8.4f} | {exp.level.parameter:>8.2f} |"
+                f" {exp.level.similarity_degradation:>8.2f} |"
+            )
+
+        lines.append(sep)
+
+    lines.append("")
+    lines.append("=" * 94)
+
+    return "\n".join(lines)
